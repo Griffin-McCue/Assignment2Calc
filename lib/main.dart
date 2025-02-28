@@ -8,49 +8,34 @@ class CalculatorApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Calculator App',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: CalculatorHomePage(),
+      debugShowCheckedModeBanner: false,
+      home: CalculatorScreen(),
     );
   }
 }
 
-class CalculatorHomePage extends StatefulWidget {
+class CalculatorScreen extends StatefulWidget {
   @override
-  _CalculatorHomePageState createState() => _CalculatorHomePageState();
+  _CalculatorScreenState createState() => _CalculatorScreenState();
 }
 
-class _CalculatorHomePageState extends State<CalculatorHomePage> {
-  String _output = "0";
-  String _operand1 = "";
+class _CalculatorScreenState extends State<CalculatorScreen> {
+  String _output = "";
+  String _num1 = "";
+  String _num2 = "";
   String _operator = "";
-  String _operand2 = "";
 
-  void _buttonPressed(String buttonText) {
+  void _buttonPressed(String value) {
     setState(() {
-      if (buttonText == "C") {
-        _output = "0";
-        _operand1 = "";
+      if (value == "C") {
+        _output = "";
+        _num1 = "";
+        _num2 = "";
         _operator = "";
-        _operand2 = "";
-      } else if (buttonText == "+" ||
-          buttonText == "-" ||
-          buttonText == "*" ||
-          buttonText == "/") {
-        if (_operand1.isNotEmpty) {
-          _operator = buttonText;
-        }else if(_output != "0"){
-            _operand1 = _output;
-            _operator = buttonText;
-            _output = "0";
-        }
-      } else if (buttonText == "=") {
-        if (_operand1.isNotEmpty && _operator.isNotEmpty && _output.isNotEmpty) {
-          _operand2 = _output;
-          double num1 = double.parse(_operand1);
-          double num2 = double.parse(_operand2);
+      } else if (value == "=") {
+        if (_num1.isNotEmpty && _num2.isNotEmpty && _operator.isNotEmpty) {
+          double num1 = double.parse(_num1);
+          double num2 = double.parse(_num2);
           double result = 0;
 
           switch (_operator) {
@@ -64,42 +49,37 @@ class _CalculatorHomePageState extends State<CalculatorHomePage> {
               result = num1 * num2;
               break;
             case "/":
-              if (num2 != 0) {
-                result = num1 / num2;
-              } else {
-                _output = "Error: Division by zero";
-                return;
-              }
+              result = num2 != 0 ? num1 / num2 : double.infinity;
               break;
           }
           _output = result.toString();
-          _operand1 = "";
+          _num1 = _output;
+          _num2 = "";
           _operator = "";
-          _operand2 = "";
+        }
+      } else if (value == "+" || value == "-" || value == "*" || value == "/") {
+        if (_num1.isNotEmpty && _operator.isEmpty) {
+          _operator = value;
         }
       } else {
-        if (_output == "0" || _operator.isNotEmpty) {
-          _output = buttonText;
-          if(_operator.isNotEmpty){
-            _operator = "";
-          }
+        if (_operator.isEmpty) {
+          _num1 += value;
+          _output = _num1;
         } else {
-          _output += buttonText;
+          _num2 += value;
+          _output = _num2;
         }
       }
     });
   }
 
-  Widget _buildButton(String buttonText) {
+  Widget _buildButton(String value) {
     return Expanded(
-      child: Padding(
-        padding: const EdgeInsets.all(4.0),
-        child: ElevatedButton(
-          onPressed: () => _buttonPressed(buttonText),
-          child: Text(
-            buttonText,
-            style: TextStyle(fontSize: 24),
-          ),
+      child: ElevatedButton(
+        onPressed: () => _buttonPressed(value),
+        child: Text(
+          value,
+          style: TextStyle(fontSize: 24),
         ),
       ),
     );
@@ -108,53 +88,32 @@ class _CalculatorHomePageState extends State<CalculatorHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Calculator'),
-      ),
+      appBar: AppBar(title: Text("Calculator")),
       body: Column(
-        children: <Widget>[
+        children: [
           Expanded(
             child: Container(
-              padding: EdgeInsets.all(16.0),
-              alignment: Alignment.bottomRight,
+              alignment: Alignment.centerRight,
+              padding: EdgeInsets.all(16),
               child: Text(
                 _output,
-                style: TextStyle(fontSize: 48.0, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold),
               ),
             ),
           ),
-          Row(
-            children: <Widget>[
-              _buildButton("7"),
-              _buildButton("8"),
-              _buildButton("9"),
-              _buildButton("/"),
+          Column(
+            children: [
+              for (var row in [
+                ["7", "8", "9", "/"],
+                ["4", "5", "6", "*"],
+                ["1", "2", "3", "-"],
+                ["C", "0", "=", "+"]
+              ])
+                Row(
+                  children: row.map((text) => _buildButton(text)).toList(),
+                ),
             ],
-          ),
-          Row(
-            children: <Widget>[
-              _buildButton("4"),
-              _buildButton("5"),
-              _buildButton("6"),
-              _buildButton("*"),
-            ],
-          ),
-          Row(
-            children: <Widget>[
-              _buildButton("1"),
-              _buildButton("2"),
-              _buildButton("3"),
-              _buildButton("-"),
-            ],
-          ),
-          Row(
-            children: <Widget>[
-              _buildButton("C"),
-              _buildButton("0"),
-              _buildButton("="),
-              _buildButton("+"),
-            ],
-          ),
+          )
         ],
       ),
     );
